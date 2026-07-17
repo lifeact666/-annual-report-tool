@@ -1,6 +1,6 @@
 #左下角搜索并打开 Anaconda Prompt（那个黑框框）。
 #输入 D: 并按回车。
-#输入 cd D:\桌面备份\毕马威实习\网页实现 并按回车。
+#输入 cd D:\ 并按回车。
 #输入 streamlit run app.py 并按回车。
 
 #pip install -U kaleido
@@ -620,7 +620,7 @@ def show_step_7_content():
                     from io import BytesIO
                     import openpyxl
         
-                    url = "https://github.com/z-xylym/my-actuary-tool/raw/refs/heads/main/step7-%E5%9B%BE%E7%89%87%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E9%87%8A%E6%A8%A1%E6%9D%BF_0608.xlsx"
+                    url = "https://github.com/lifeact666/-annual-report-tool/blob/main/templates/step7-%E5%9B%BE%E7%89%87%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E9%87%8A%E6%A8%A1%E6%9D%BF_0608.xlsx"
                     r = requests.get(url, timeout=15)
         
                     if r.status_code == 200:
@@ -675,7 +675,7 @@ def show_step_7_content():
         df_notes = None
         if use_default:
             try:
-                df_notes = pd.read_excel("https://github.com/z-xylym/my-actuary-tool/raw/refs/heads/main/step7-%E5%9B%BE%E7%89%87%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E9%87%8A%E6%A8%A1%E6%9D%BF_0608.xlsx")
+                df_notes = pd.read_excel("https://github.com/lifeact666/-annual-report-tool/blob/main/templates/step7-%E5%9B%BE%E7%89%87%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E9%87%8A%E6%A8%A1%E6%9D%BF_0608.xlsx")
                 st.success("✅ 内置默认注释表加载成功")
             except Exception as e:
                 st.error(f"❌ 加载失败：{e}")
@@ -4267,13 +4267,13 @@ def show_step_7_content():
             date_str = f"{today.year}年{today.month}月"
             type_str = "" if "全部" in selected_types else "、".join(selected_types)
             
-            cover_url = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E6%A0%87%E9%A2%98%E9%A1%B5.png"
-            back_url  = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E5%B0%81%E5%BA%95%E9%A1%B5.png"
+            cover_url = "https://github.com/lifeact666/-annual-report-tool/blob/main/picture/%E6%A0%87%E9%A2%98%E9%A1%B5.png"
+            back_url  = "https://github.com/lifeact666/-annual-report-tool/blob/main/picture/%E5%B0%81%E5%BA%95%E9%A1%B5.png"
             
             appendix_urls = [
-                "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E6%96%B0%E5%87%86%E5%88%991.png",
-                "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E6%96%B0%E5%87%86%E5%88%992.png",
-                "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E6%96%B0%E5%87%86%E5%88%993.png"
+                "https://github.com/lifeact666/-annual-report-tool/blob/main/picture/%E6%96%B0%E5%87%86%E5%88%991.png",
+                "https://github.com/lifeact666/-annual-report-tool/blob/main/picture/%E6%96%B0%E5%87%86%E5%88%992.png",
+                "https://github.com/lifeact666/-annual-report-tool/blob/main/picture/%E6%96%B0%E5%87%86%E5%88%993.png"
             ]
             
             def render_appendix_insert_pages():
@@ -5402,7 +5402,7 @@ else:
             col_t1, col_t2 = st.columns([1, 1])
             with col_t1: use_default = st.toggle("使用系统默认模板", value=True, help="开启后直接使用内置的新华样例表")
             
-            template_file = "https://github.com/z-xylym/my-actuary-tool/raw/refs/heads/main/%E6%96%B0%E5%8D%8E%E6%A0%B7%E4%BE%8B%E8%A1%A8.xlsx" if use_default else st.file_uploader("上传自定义目标表模板 (.xlsx)", type="xlsx", key="unique_template_uploader")
+            template_file = "https://.com/z-xylym/C/raw/refs/heads/main/%E6%96%B0%E5%8D%8E%E6%A0%B7%E4%BE%8B%E8%A1%A8.xlsx" if use_default else st.file_uploader("上传自定义目标表模板 (.xlsx)", type="xlsx", key="unique_template_uploader")
         
             if template_file:
                 COL_COMPANY, COL_CATEGORY, COL_FIELD_NAME, COL_FIELD_TYPE, COL_NOTE, COL_RULE, COL_CO_TYPE = "公司", "类别", "字段名", "字段类型", "注释", "计算规则", "公司类型"
@@ -5730,7 +5730,7 @@ else:
                     
                     # 🌟 修复：改为从 Github 链接动态获取文件
                     import requests
-                    url = "https://github.com/z-xylym/my-actuary-tool/raw/refs/heads/main/%E6%96%B0%E5%8D%8E%E6%A0%B7%E4%BE%8B%E8%A1%A8.xlsx"
+                    url = "https://github.com/lifeact666/-annual-report-tool/blob/main/templates/%E6%96%B0%E5%8D%8E%E6%A0%B7%E4%BE%8B%E8%A1%A8.xlsx"
                     
                     try:
                         # 添加一个 spinner 防止网络慢的时候用户以为卡死了
