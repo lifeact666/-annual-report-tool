@@ -20,6 +20,8 @@ def show_step_8_content():
     """行业统计分析 - 完全参照 Step 7 的三层架构"""
     import pandas as pd
 
+    
+    # ========== 第①部分：计算函数库（纯数据处理，无UI；因为下面的侧边栏/配置代码要直接调用它们，所以必须放在最前面） ==========
     # 工具函数 1：解析 bins 字符串 → float 列表
     def parse_bins_input(bins_str):
         """
@@ -75,240 +77,6 @@ def show_step_8_content():
         lo, hi = math.floor(mn / step) * step, math.ceil(mx / step) * step
         bins = np.arange(lo, hi + step, step).tolist()
         return bins if len(bins) >= 2 else [lo, hi] if lo != hi else [lo, lo + 1]
-
-    # 第1层：样式注入与数据准备
-    # 1.1 样式注入
-    COMMON_TITLE_FONT = dict(size=18, color="#00338D", family="Microsoft YaHei")
-
-    # 1. 样式与前端注入 (紧凑版 CSS & JS)
-    st.markdown("""
-    <style>
-    [data-testid="stSidebar"] { background: rgba(255,255,255,0.95) !important; border-right: 1px solid #EAEAEA !important; box-shadow: 2px 0px 15px rgba(0,0,0,0.08) !important; }
-    .nav-floating-sign-s8 { position: fixed; left: 0; top: 50%; transform: translateY(-50%); background: rgba(0, 133, 120, 0.85); color: white; padding: 20px 8px; border-radius: 0 12px 12px 0; writing-mode: vertical-rl; text-orientation: mixed; font-size: 22px; font-weight: bold; letter-spacing: 3px; z-index: 9999; cursor: pointer; box-shadow: 3px 3px 12px rgba(0,0,0,0.25); transition: all 0.2s; }
-    .nav-floating-sign-s8:hover { background: rgba(0, 133, 120, 1); padding-left: 15px; }
-    
-    /* 放在 @media print { } 块的外面 */
-    .stPlotlyChart {
-        width: 100% !important;
-        min-width: 0 !important;
-    }
-    .print-only { display: none !important; }
-    /* 🌟 新增：专门给封面封底用的样式类 */
-    .cover-page {
-        position: relative !important;
-        width: 338.67mm !important;
-        height: 190.5mm !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        page-break-after: always !important;
-        overflow: hidden !important;
-        background: transparent !important;
-    }
-    .cover-page img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
-    /* Streamlit网页模式去掉container两侧padding */
-    .block-container {
-        padding-top:0 !important;
-        padding-right:10px !important;
-        padding-left:10px !important;
-        margin-top:0 !important;
-    }
-    /* 封面封底强制颜色不被浏览器覆盖 */
-    .cover-text {
-        forced-color-adjust: none !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-        color: white !important;
-        -webkit-text-fill-color: white !important;
-    }
-    .element-container:first-child{
-        margin-top:0 !important;
-        padding-top:0 !important;
-    }
-    @media print {
-        .print-only { display: block !important; }
-        html,body{
-            width:338.67mm!important;
-            height:190.5mm!important;
-            overflow:hidden!important;
-            zoom:100%!important;
-        }
-        .main .block-container{
-            max-width:100%!important;
-            padding-top:0!important;
-            padding-bottom:0!important;
-        }   
-        .block-container {
-            padding-top: 0rem !important;
-        }
-        /* ===== 隐藏所有交互元素 ===== */
-        .no-print, h1, .nav-floating-sign-s8,
-        [data-testid="collapsedControl"], header, footer,
-        [data-testid="stHeader"], [data-testid="stSidebar"],
-        section[data-testid="stSidebar"],
-        [data-testid="stToolbar"], button[kind="secondary"],
-        input, .stSlider, [data-testid="stSelectbox"],
-        [data-testid="stRadio"], [data-testid="stExpander"],
-        .stAlert,
-        button[role="tab"],
-        div[role="tablist"],
-        [data-baseweb="tab-list"],
-        hr { display: none !important; }
-
-        /* ===== 页面布局撑满纸张 ===== */
-        .page-break-container {
-            break-inside: avoid !important;
-            margin: 0 !important;              /* 清掉容器 margin，防溢出变空白页 */
-            padding: 0 !important;
-            padding-bottom: 0mm !important;    /* 只留很小的底部间距 */
-        }
-        .stApp {
-            max-width: 100% !important;
-            width: 100% !important;
-        }
-        
-        /* 保留两列并排布局的例外 */
-        /* ⭐ PDF打印时强制双列 */
-        
-        .keep-columns [data-testid="stHorizontalBlock"]{
-            display:flex!important;
-            flex-wrap:nowrap!important;
-            align-items:flex-start!important;
-            justify-content:space-between!important;
-            gap:0!important;
-            width:100%!important;
-        }
-        .keep-columns [data-testid="stHorizontalBlock"]>div{
-            width:49%!important;
-            min-width:49%!important;
-            max-width:49%!important;
-            flex:0 0 49%!important;
-            overflow:hidden!important;
-            page-break-inside:avoid!important;
-            break-inside:avoid!important;
-        }
-
-        /* ===== 分页标题 ===== */
-        .page-break-title {
-            break-before: page !important;      /* 用新语法替代 page-break-before */
-            padding-top: 10px !important;       /* 原来 40px，缩小防撑出空白 */
-            margin-top: 0 !important;
-            text-align: left !important;
-        }
-
-        /* ===== 标题 ===== */
-        h2 {
-            display: block !important;
-            text-align: left !important;
-            color: #00338D !important;
-            font-size: 30px !important;
-            font-weight: bold !important;
-            border-bottom: 2px solid #00338D !important;
-            padding-bottom: 6px !important;
-            margin: 14px 0 10px 0 !important;
-        }
-        h3:not(.no-print) {
-            display: block !important;
-            text-align: left !important;
-            color: #00338D !important;
-            font-size: 30px !important;
-            font-weight: bold !important;
-            margin: 10px 0 8px 0 !important;
-            page-break-after: avoid !important;
-        }
-
-        /* ===== 图表 ===== */
-        .plotly-graph-div,
-        .stPlotlyChart {
-            width: 100% !important;
-            max-width: 100% !important;
-            height: auto !important;
-            page-break-inside: avoid !important;
-            display: block !important;
-        }
-
-        /* ===== 表格 ===== */
-        div[data-testid="stDataFrame"],
-        div[data-testid="stTable"] {
-            zoom: 0.65 !important;
-            margin: 0 auto 20px auto !important;
-            max-width: 100% !important;
-            page-break-inside: auto !important;
-        }
-        div[data-testid="stTable"] tr {
-            page-break-inside: avoid !important;
-        }
-
-        .element-container {
-            page-break-inside: avoid !important;
-            width: 100% !important;
-        }
-        .pdf-page-break {
-                break-before: page !important;
-                page-break-before: always !important;
-                height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-        
-            table {
-                page-break-inside: auto !important;
-            }
-            tr {
-                page-break-inside: avoid !important;
-                page-break-after: auto !important;
-            }
-            td, th {
-                page-break-inside: avoid !important;
-            }
-            thead {
-                display: table-header-group !important;
-            }
-        }
-    }
-
-    /* 纵向打印微调 */
-    @media print and (orientation: portrait) {
-        .stPlotlyChart { margin-bottom: 10mm !important; }
-    }
-    /* 横向打印微调 */
-    @media print and (orientation: landscape) {
-        .stPlotlyChart { margin-bottom: 6mm !important; }
-    }
-
-    .stPlotlyChart, div[data-testid="stDataFrame"] { display: flex !important; justify-content: center !important; }
-    .highlight-blue-box { border: 1.5px solid rgba(0,51,141,0.85) !important; border-radius: 12px !important; padding: 10px !important; background: rgba(0,51,141,0.02) !important; box-shadow: 0px 4px 12px rgba(0,51,141,0.12) !important; margin-bottom: 25px !important; }
-    </style>
-    <div class="nav-floating-sign-s8" id="custom-nav-trigger-s8">展开行业导航栏 </div>
-    """, unsafe_allow_html=True)
-
-    components.html("""<script>let t = setInterval(() => { const d = window.parent.document; const b = d.getElementById("custom-nav-trigger-s8"); const c = d.querySelector('[data-testid="collapsedControl"]') || d.querySelector('button[kind="header"]'); if(b && c) { b.onclick = () => c.click(); clearInterval(t); } }, 500);</script>""", height=0, width=0)
-    
-    # 1.2 获取数据
-    if 'integrated_data' not in st.session_state or st.session_state['integrated_data'] is None:
-        st.warning("⚠️ 请先在 Step 6 完成数据集成。")
-        return
-    
-    df_raw = st.session_state['integrated_data'].copy()
-    
-    # 1.3 提取年份
-    valid_years = sorted([
-        int(y) for y in df_raw['报告年份'].dropna().astype(str).str.replace(".0", "", regex=False).unique()
-        if y.isdigit()
-    ])
-    if len(valid_years) < 2:
-        st.warning("⚠️ 年份数量不足，至少需要两个年份。")
-        return
-    
-    latest_year = valid_years[-1]
-    prev_year = valid_years[-2]
-    year_list = [prev_year, latest_year]
-    
-    st.markdown("### 📈 行业统计分析")
-
-    # 2. 注释表加载区（适配 Step 7 格式）
-    notes_dict_8, ordered_modules, first_levels = {}, [], []
-    df_notes = None
-    
     def calc_scatter_data(df, selected_types, latest_year, prev_year, field_name, display_name):
         """计算散点图数据（支持计算字段）"""
         import pandas as pd
@@ -1259,210 +1027,6 @@ def show_step_8_content():
                 return f"（自动生成失败：{e}）"
 
             return ""   # 无匹配的 m_id 返回空字符串，不报错
-    
-
-    with st.expander("📥 行业分析注释输入", expanded=False):
-        # 1. 坐标轴刻度表来源选择
-        use_default_bins = st.toggle("使用默认坐标轴刻度表", value=True, key="step8_use_default_bins")
-
-        if use_default_bins:
-            try:
-                with st.spinner("🚀 正在从云端加载默认坐标轴刻度表，请稍候..."):
-                    # 📌 TODO：将下方链接替换为你上传到 GitHub 的刻度表文件地址
-                    # 文件路径示例：my-actuary-tool/main/坐标轴刻度表-step8.xlsx
-                    # 表头必须包含：m_id, x_bins, y_bins。可选列：enable（0=禁用）、note
-                    default_bins_url = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E5%9D%90%E6%A0%87%E8%BD%B4%E5%88%BB%E5%BA%A6%E8%A1%A8-step8%20%E7%9A%84%E5%89%AF%E6%9C%AC.xlsx"
-                    custom_bins_map = load_custom_bins_excel(default_bins_url)
-                    st.session_state["custom_bins_map"] = custom_bins_map
-                st.success(f"✅ 已从云端加载默认刻度表（共 {len(custom_bins_map)} 个图）")
-            except Exception as e:
-                st.error(f"❌ 云端下载失败：{e}")
-        else:
-            uploaded_bins_file = st.file_uploader(
-                "📊 上传自定义坐标轴刻度表（Excel）",
-                type=["xlsx", "xls"], key="custom_bins_uploader",
-                help="表头必须包含：m_id, x_bins, y_bins。可选列：enable（0=禁用）、note"
-            )
-            if uploaded_bins_file is not None:
-                try:
-                    custom_bins_map = load_custom_bins_excel(uploaded_bins_file)
-                    st.session_state["custom_bins_map"] = custom_bins_map
-                    st.success(f"✅ 已加载 {len(custom_bins_map)} 个图的自定义刻度配置")
-                except Exception as e:
-                    st.error(f"❌ 刻度表读取失败：{e}")
-
-        if st.session_state.get("custom_bins_map"):
-            if st.button("清除刻度配置（恢复自动计算）", key="clear_custom_bins"):
-                del st.session_state["custom_bins_map"]
-                st.rerun()
-    
-        # 2. 注释表来源选择
-        # 🌟 核心修改 1：把 value=False 改成 value=True，让它默认就是打开状态！
-        use_default = st.toggle("使用默认注释表", value=True, key="step8_use_default")
-    
-        df_notes = None
-
-        if use_default:
-            try:
-                with st.spinner("🚀 正在从云端加载默认注释表，请稍候..."):
-                    # 🌟 核心修改 2：替换为 raw.githubusercontent.com 的原生读取链接
-                    default_url = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/RD-%E5%9B%BE%E7%89%87%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E9%87%8A%E6%A8%A1%E6%9D%BF-step8.xlsx"
-                    import requests, io
-                    _resp = requests.get(default_url, timeout=15)
-                    _resp.raise_for_status()
-                    df_notes = pd.read_excel(io.BytesIO(_resp.content))
-                st.success("✅ 内置默认注释表从云端加载成功！")
-            except Exception as e:
-                st.error(f"❌ 云端下载失败，报错原因: {e}")
-                # 贴心加上排错提示
-                st.info("💡 排错指南：\n1. 请确认你的 GitHub 仓库是 Public（公开）的，如果是 Private 则代码无法直接读取。\n2. 请确认文件已经成功 Push 到 GitHub，且没有拼写错误。")
-        else:
-            notes_file = st.file_uploader("上传 Excel 分析注释表", type=['xlsx', 'xls'], key="step8_notes")
-            if notes_file:
-                try:
-                    df_notes = pd.read_excel(notes_file)
-                    st.success("✅ 自定义注释表上传成功！")
-                except Exception as e:
-                    st.error(f"❌ 上传文件解析失败: {e}")
-
-# 💡 友情提示：记得在后续代码中，使用 df_notes 之前，先判断一下 if df_notes is not None:
-    
-        if df_notes is not None:
-            # 🌟 终极防线：在所有操作开始前，强制将这两列变为通用对象 (object)
-            # 这样 Pandas 才会允许我们把文本塞进原本全是空值的 float64 列里
-            if '分析内容-自定义' in df_notes.columns:
-                df_notes['分析内容-自定义'] = df_notes['分析内容-自定义'].astype('object')
-            if '分析内容-默认' in df_notes.columns:
-                df_notes['分析内容-默认'] = df_notes['分析内容-默认'].astype('object')
-
-            # 🌟 记录哪些 m_id 的"分析内容-自定义"原本为空、由系统自动生成
-            # （这些模块在每次渲染时都要按当前坐标轴刻度重新生成，
-            #  而不是使用这里写入的、可能已过期的快照值）
-            auto_generated_mids = set()
-
-            if '模块ID' in df_notes.columns and '分析内容-自定义' in df_notes.columns:
-                for idx, row in df_notes.iterrows():
-                    mid = str(row.get('模块ID', '')).strip()
-                    if not mid or mid == 'nan':
-                        continue
-                    
-                    # 🌟 修复读取方式
-                    raw_val = df_notes.loc[idx, '分析内容-自定义']
-                    
-                    # 修复：用 pd.isna 兼容 float NaN，不依赖字符串比较
-                    if pd.isna(raw_val) or str(raw_val).strip() in ('', 'nan', 'None'):
-                        auto_generated_mids.add(mid)
-                        generated = generate_custom_analysis(
-                            mid, df_raw,
-                            st.session_state.get('step8_selected_types', []),
-                            latest_year, prev_year
-                        )
-                        if generated:
-                            # 🌟 修复赋值方式：必须用 .loc 赋值，并且套上 str()
-                            df_notes.loc[idx, '分析内容-自定义'] = str(generated)
-            
-            for col in df_notes.columns:
-                df_notes[col] = df_notes[col].astype(str).str.strip()
-            
-            required_cols = ['模块ID', '一级分类', '二级分类', '对应图表名称', '分析内容-默认', '分析内容-自定义', '注释内容']
-            for col in required_cols:
-                if col not in df_notes.columns:
-                    df_notes[col] = ''
-            
-            for col in ['一级分类', '二级分类', '对应图表名称', '模块ID']:
-                if col in df_notes.columns:
-                    df_notes[col] = df_notes[col].replace(['nan', 'NaN', 'NAN', 'None'], '')
-            
-            if '二级分类' in df_notes.columns:
-                df_notes['二级分类'] = df_notes['二级分类'].apply(
-                    lambda x: "全部" if str(x).strip() == "" else str(x).strip()
-                )
-            
-            for _, r in df_notes.iterrows():
-                m_id = str(r.get('模块ID', '')).strip()
-                if not m_id:
-                    continue
-                
-                analysis_default = str(r.get('分析内容-默认', '')).strip()
-                analysis_custom = str(r.get('分析内容-自定义', '')).strip()
-                
-                final_analysis = analysis_custom if analysis_custom else analysis_default
-                
-                notes_dict_8[m_id] = {
-                    'title': str(r.get('对应图表名称', '')).strip(),
-                    'analysis': final_analysis,           # 合并后的分析内容
-                    'analysis_default': analysis_default,  # 保留默认供后续使用
-                    'analysis_custom': analysis_custom,    # 保留自定义供后续使用
-                    'note': str(r.get('注释内容', '')).strip(),
-                    '一级分类': str(r.get('一级分类', '')).strip(),
-                    '二级分类': str(r.get('二级分类', '')).strip(),
-                    'remark': str(r.get('话术', '')).strip() if '话术' in df_notes.columns else '',
-                    'is_auto_generated': m_id in auto_generated_mids,  # 🌟 标记：自定义分析是否为系统自动生成
-                }
-                
-                if m_id not in ordered_modules:
-                    ordered_modules.append(m_id)
-            
-            first_levels = [x for x in df_notes['一级分类'].unique() if x and x != '']
-            
-            st.session_state['step8_notes_dict'] = notes_dict_8
-            st.session_state['step8_ordered_modules'] = ordered_modules
-            st.session_state['step8_df_notes'] = df_notes.copy()
-    
-    if df_notes is None and 'step8_df_notes' in st.session_state:
-        df_notes = st.session_state['step8_df_notes'].copy()
-        notes_dict_8 = st.session_state.get('step8_notes_dict', {})
-        ordered_modules = st.session_state.get('step8_ordered_modules', [])
-        first_levels = [x for x in df_notes['一级分类'].unique() if x and x != ''] if df_notes is not None else []
-        
-    # 3. 侧边栏导航
-    print_mode = False
-    active_m_id = None
-    active_chart_name = None
-    
-    with st.sidebar:
-        st.markdown("<h3 style='color: #00338D; font-size: 18px;'>行业分析导航</h3>", unsafe_allow_html=True)
-    
-        if first_levels:
-            main_nav = st.radio("📁 一级模块", first_levels + ["🖨️ 一键显示全部 (打印/导出)"], key="step8_main")
-    
-            if main_nav == "🖨️ 一键显示全部 (打印/导出)":
-                print_mode = True
-                st.info("💡 点击下方按钮导出 PDF")
-                components.html(
-                    """<button onclick="window.parent.print()" style="width:100%; padding:12px; background:#00338D; color:white; border:none; border-radius:6px; cursor:pointer;">立即导出 PDF 报告</button>""",
-                    height=60
-                )
-            else:
-                df_sub1 = df_notes[df_notes['一级分类'] == main_nav]
-                sec_levels = [x for x in df_sub1['二级分类'].unique() if x and x != '']
-    
-                if len(sec_levels) == 0:
-                    charts = [x for x in df_sub1['对应图表名称'].unique() if x and x != '']
-                    chart_nav = st.radio("📊 具体图表", charts, key="step8_chart")
-                    row = df_sub1[df_sub1['对应图表名称'] == chart_nav].iloc[0]
-                    active_m_id = row['模块ID']
-                    active_chart_name = row['对应图表名称']
-                else:
-                    sub_nav = st.radio("📂 二级模块", ["全部"] + sec_levels, key="step8_sub")
-                    if sub_nav != "全部":
-                        df_sub2 = df_sub1[df_sub1['二级分类'] == sub_nav]
-                        charts = [x for x in df_sub2['对应图表名称'].unique() if x and x != '']
-                        chart_nav = st.radio("📊 具体图表", charts, key="step8_chart")
-                        row = df_sub2[df_sub2['对应图表名称'] == chart_nav].iloc[0]
-                        active_m_id = row['模块ID']
-                        active_chart_name = row['对应图表名称']
-                    else:
-                        charts = [x for x in df_sub1['对应图表名称'].unique() if x and x != '']
-                        chart_nav = st.radio("📊 具体图表", charts, key="step8_chart")
-                        row = df_sub1[df_sub1['对应图表名称'] == chart_nav].iloc[0]
-                        active_m_id = row['模块ID']
-                        active_chart_name = row['对应图表名称']
-        else:
-            st.warning("⚠️ 请先上传包含层级信息的注释表")
-            return
-        
-    # 行业分析配置（公司类型选择等）
     DEFAULT_TYPE_ORDER = ["头部", "银行系", "外资", "养老健康", "小型"]  # 仅作默认，不强制
     
     def sort_company_types(type_list):
@@ -1494,17 +1058,14 @@ def show_step_8_content():
         traffic["Red"],           # #ED2124 红
         primary["Light Blue"],    # #ACEAFF 浅蓝（兜底用）
     ]
-    
     def get_company_color(ct):
         if ct in COMPANY_TYPE_COLORS:
             return COMPANY_TYPE_COLORS[ct]
         return _FALLBACK_COLORS[hash(ct) % len(_FALLBACK_COLORS)]
-
     # 🌟 同类型公司固定展示顺序——排序依据字段
     # 未来要新增可选字段，直接在这个列表里加一个字符串即可（前提是原始数据"字段名"列里
     # 存在同名的值，例如"投资资产"之类）；只有"综合净资产"是特殊计算字段，走单独分支。
     COMPANY_SORT_FIELD_OPTIONS = ["总资产", "综合净资产"]
-
     def get_company_sort_map(df_raw, latest_year, sort_field):
         """
         计算【最新年份】下，每家公司用于"同类型内固定排序"的指标值（越大越靠前）。
@@ -1526,65 +1087,9 @@ def show_step_8_content():
                 rows = g[g['字段名'] == sort_field]
                 sort_map[co] = rows['(百万)人民币'].sum() if not rows.empty else np.nan
         return sort_map
-
-    # 1.6 全局配置
-    with st.expander("⚙️ 行业分析配置", expanded=False):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            all_types = sorted([str(x) for x in df_raw['公司类型'].dropna().unique()])
-            # 默认顺序：先按DEFAULT_TYPE_ORDER里有的，再追加数据里多出来的
-            default_order = [t for t in DEFAULT_TYPE_ORDER if t in all_types]
-            default_order += [t for t in all_types if t not in default_order]
     
-            selected_types = st.multiselect(
-                "🏢 选择公司类型（可多选）",
-                default_order,
-                default=default_order
-            )
-            st.session_state['step8_selected_types'] = selected_types
-        with c2:
-            st.markdown("**📊 同类型公司展示顺序**")
-            st.caption("同一公司类型内的公司，按所选字段（最新年份）从高到低固定排列")
-            sort_field = st.selectbox(
-                "排序依据字段",
-                COMPANY_SORT_FIELD_OPTIONS,
-                index=0,
-                key="step8_company_sort_field_selector"
-            )
-            st.session_state['step8_company_sort_field'] = sort_field
-        with c3:
-            st.markdown("**📋 公司类型显示顺序**")
-            st.caption("调整下方选项顺序即可改变图表中的展示顺序")
-            type_order = st.multiselect(
-                "拖拽或重新选择顺序",
-                default_order,
-                default=default_order,
-                key="step8_type_order_selector"
-            )
-            # 补上没被选中的（保证所有类型都在顺序里）
-            full_order = type_order + [t for t in default_order if t not in type_order]
-            st.session_state['step8_type_order'] = full_order
-
-    # 🌟 按当前选定的排序字段，预先算好"公司 -> 排序值"映射，供下方图表统一使用
-    company_sort_map = get_company_sort_map(
-        df_raw, latest_year,
-        st.session_state.get('step8_company_sort_field', COMPANY_SORT_FIELD_OPTIONS[0])
-    )
-    
-    # 第2层：计算函数库（只负责数据计算，不涉及绘图）
-    def parse_bins_input(bins_str):
-        """解析区间输入字符串，返回排序后的列表或 None"""
-        if not bins_str or str(bins_str).strip() == "":
-            return None
-        try:
-            bins = sorted(set([float(x.strip()) for x in str(bins_str).split(",") if str(x).strip()]))
-            if len(bins) < 2:
-                return None
-            return bins
-        except:
-            return None
-    
-    # 第3层：绘图函数（只负责画图，不计算数据）
+    # ========== 第②部分：画图函数（纯 Plotly 绘图，不涉及 UI 交互） ==========
+    COMMON_TITLE_FONT = dict(size=18, color="#00338D", family="Microsoft YaHei")
     def apply_kpmg_stack_style(fig, year_list, selected_types, extra_layout=None):
         n_cols = len(selected_types) if isinstance(selected_types, list) else fig.layout.annotations.__len__()
         
@@ -2683,6 +2188,448 @@ def show_step_8_content():
         
         return fig
 
+    
+    # ========== 第③部分：环境初始化 + 侧边栏与配置（用户输入层） ==========
+
+    # 1. 样式与前端注入 (紧凑版 CSS & JS)
+    st.markdown("""
+    <style>
+    [data-testid="stSidebar"] { background: rgba(255,255,255,0.95) !important; border-right: 1px solid #EAEAEA !important; box-shadow: 2px 0px 15px rgba(0,0,0,0.08) !important; }
+    
+    /* 放在 @media print { } 块的外面 */
+    .stPlotlyChart {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .print-only { display: none !important; }
+    /* 🌟 新增：专门给封面封底用的样式类 */
+    .cover-page {
+        position: relative !important;
+        width: 338.67mm !important;
+        height: 190.5mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-after: always !important;
+        overflow: hidden !important;
+        background: transparent !important;
+    }
+    .cover-page img { width: 100% !important; height: 100% !important; object-fit: cover !important; display: block !important; }
+    /* Streamlit网页模式去掉container两侧padding */
+    .block-container {
+        padding-top:0 !important;
+        padding-right:10px !important;
+        padding-left:10px !important;
+        margin-top:0 !important;
+    }
+    /* 封面封底强制颜色不被浏览器覆盖 */
+    .cover-text {
+        forced-color-adjust: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color: white !important;
+        -webkit-text-fill-color: white !important;
+    }
+    .element-container:first-child{
+        margin-top:0 !important;
+        padding-top:0 !important;
+    }
+    @media print {
+        .print-only { display: block !important; }
+        html,body{
+            width:338.67mm!important;
+            height:190.5mm!important;
+            overflow:hidden!important;
+            zoom:100%!important;
+        }
+        .main .block-container{
+            max-width:100%!important;
+            padding-top:0!important;
+            padding-bottom:0!important;
+        }   
+        .block-container {
+            padding-top: 0rem !important;
+        }
+        /* ===== 隐藏所有交互元素 ===== */
+        .no-print, h1,
+        [data-testid="collapsedControl"], header, footer,
+        [data-testid="stHeader"], [data-testid="stSidebar"],
+        section[data-testid="stSidebar"],
+        [data-testid="stToolbar"], button[kind="secondary"],
+        input, .stSlider, [data-testid="stSelectbox"],
+        [data-testid="stRadio"], [data-testid="stExpander"],
+        .stAlert,
+        button[role="tab"],
+        div[role="tablist"],
+        [data-baseweb="tab-list"],
+        hr { display: none !important; }
+
+        /* ===== 页面布局撑满纸张 ===== */
+        .page-break-container {
+            break-inside: avoid !important;
+            margin: 0 !important;              /* 清掉容器 margin，防溢出变空白页 */
+            padding: 0 !important;
+            padding-bottom: 0mm !important;    /* 只留很小的底部间距 */
+        }
+        .stApp {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        /* 保留两列并排布局的例外 */
+        /* ⭐ PDF打印时强制双列 */
+        
+        .keep-columns [data-testid="stHorizontalBlock"]{
+            display:flex!important;
+            flex-wrap:nowrap!important;
+            align-items:flex-start!important;
+            justify-content:space-between!important;
+            gap:0!important;
+            width:100%!important;
+        }
+        .keep-columns [data-testid="stHorizontalBlock"]>div{
+            width:49%!important;
+            min-width:49%!important;
+            max-width:49%!important;
+            flex:0 0 49%!important;
+            overflow:hidden!important;
+            page-break-inside:avoid!important;
+            break-inside:avoid!important;
+        }
+
+        /* ===== 分页标题 ===== */
+        .page-break-title {
+            break-before: page !important;      /* 用新语法替代 page-break-before */
+            padding-top: 10px !important;       /* 原来 40px，缩小防撑出空白 */
+            margin-top: 0 !important;
+            text-align: left !important;
+        }
+
+        /* ===== 标题 ===== */
+        h2 {
+            display: block !important;
+            text-align: left !important;
+            color: #00338D !important;
+            font-size: 30px !important;
+            font-weight: bold !important;
+            border-bottom: 2px solid #00338D !important;
+            padding-bottom: 6px !important;
+            margin: 14px 0 10px 0 !important;
+        }
+        h3:not(.no-print) {
+            display: block !important;
+            text-align: left !important;
+            color: #00338D !important;
+            font-size: 30px !important;
+            font-weight: bold !important;
+            margin: 10px 0 8px 0 !important;
+            page-break-after: avoid !important;
+        }
+
+        /* ===== 图表 ===== */
+        .plotly-graph-div,
+        .stPlotlyChart {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            page-break-inside: avoid !important;
+            display: block !important;
+        }
+
+        /* ===== 表格 ===== */
+        div[data-testid="stDataFrame"],
+        div[data-testid="stTable"] {
+            zoom: 0.65 !important;
+            margin: 0 auto 20px auto !important;
+            max-width: 100% !important;
+            page-break-inside: auto !important;
+        }
+        div[data-testid="stTable"] tr {
+            page-break-inside: avoid !important;
+        }
+
+        .element-container {
+            page-break-inside: avoid !important;
+            width: 100% !important;
+        }
+        .pdf-page-break {
+                break-before: page !important;
+                page-break-before: always !important;
+                height: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+        
+            table {
+                page-break-inside: auto !important;
+            }
+            tr {
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
+            }
+            td, th {
+                page-break-inside: avoid !important;
+            }
+            thead {
+                display: table-header-group !important;
+            }
+        }
+    }
+
+    /* 纵向打印微调 */
+    @media print and (orientation: portrait) {
+        .stPlotlyChart { margin-bottom: 10mm !important; }
+    }
+    /* 横向打印微调 */
+    @media print and (orientation: landscape) {
+        .stPlotlyChart { margin-bottom: 6mm !important; }
+    }
+
+    .stPlotlyChart, div[data-testid="stDataFrame"] { display: flex !important; justify-content: center !important; }
+    .highlight-blue-box { border: 1.5px solid rgba(0,51,141,0.85) !important; border-radius: 12px !important; padding: 10px !important; background: rgba(0,51,141,0.02) !important; box-shadow: 0px 4px 12px rgba(0,51,141,0.12) !important; margin-bottom: 25px !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # 1.2 获取数据
+    if 'integrated_data' not in st.session_state or st.session_state['integrated_data'] is None:
+        st.warning("⚠️ 请先在 Step 6 完成数据集成。")
+        return
+    
+    df_raw = st.session_state['integrated_data'].copy()
+    
+    # 1.3 提取年份
+    valid_years = sorted([
+        int(y) for y in df_raw['报告年份'].dropna().astype(str).str.replace(".0", "", regex=False).unique()
+        if y.isdigit()
+    ])
+    if len(valid_years) < 2:
+        st.warning("⚠️ 年份数量不足，至少需要两个年份。")
+        return
+    
+    latest_year = valid_years[-1]
+    prev_year = valid_years[-2]
+    year_list = [prev_year, latest_year]
+    
+    st.markdown("### 📈 行业统计分析")
+
+    # 2. 注释表加载区（适配 Step 7 格式）
+    notes_dict_8, ordered_modules, first_levels = {}, [], []
+    df_notes = None
+    
+    
+
+    # 🌟 静默缓存：不加按钮、不加提示，同一个链接只会真正下载一次（直到应用重启）
+    @st.cache_data(show_spinner=False)
+    def _load_bins_cached(url):
+        return load_custom_bins_excel(url)
+
+    with st.expander("📥 行业分析注释输入", expanded=False):
+        # 1. 坐标轴刻度表来源选择
+        use_default_bins = st.toggle("使用默认坐标轴刻度表", value=True, key="step8_use_default_bins")
+
+        if use_default_bins:
+            try:
+                with st.spinner("🚀 正在从云端加载默认坐标轴刻度表，请稍候..."):
+                    # 📌 TODO：将下方链接替换为你上传到 GitHub 的刻度表文件地址
+                    # 文件路径示例：my-actuary-tool/main/坐标轴刻度表-step8.xlsx
+                    # 表头必须包含：m_id, x_bins, y_bins。可选列：enable（0=禁用）、note
+                    default_bins_url = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E5%9D%90%E6%A0%87%E8%BD%B4%E5%88%BB%E5%BA%A6%E8%A1%A8-step8%20%E7%9A%84%E5%89%AF%E6%9C%AC.xlsx"
+                    custom_bins_map = _load_bins_cached(default_bins_url)
+                    st.session_state["custom_bins_map"] = custom_bins_map
+                st.success(f"✅ 已从云端加载默认刻度表（共 {len(custom_bins_map)} 个图）")
+            except Exception as e:
+                st.error(f"❌ 云端下载失败：{e}")
+        else:
+            uploaded_bins_file = st.file_uploader(
+                "📊 上传自定义坐标轴刻度表（Excel）",
+                type=["xlsx", "xls"], key="custom_bins_uploader",
+                help="表头必须包含：m_id, x_bins, y_bins。可选列：enable（0=禁用）、note"
+            )
+            if uploaded_bins_file is not None:
+                try:
+                    custom_bins_map = load_custom_bins_excel(uploaded_bins_file)
+                    st.session_state["custom_bins_map"] = custom_bins_map
+                    st.success(f"✅ 已加载 {len(custom_bins_map)} 个图的自定义刻度配置")
+                except Exception as e:
+                    st.error(f"❌ 刻度表读取失败：{e}")
+            else:
+                # 🌟 关闭默认刻度表且未上传自定义文件时，自动清空残留的旧配置，
+                # 不再需要额外手动点"清除刻度配置"按钮，直接进入可自行调参状态
+                if "custom_bins_map" in st.session_state:
+                    del st.session_state["custom_bins_map"]
+
+        if st.session_state.get("custom_bins_map"):
+            if st.button("清除刻度配置（恢复自动计算）", key="clear_custom_bins"):
+                del st.session_state["custom_bins_map"]
+                st.rerun()
+    
+        # 2. 注释表来源选择
+        # 🌟 核心修改 1：把 value=False 改成 value=True，让它默认就是打开状态！
+        use_default = st.toggle("使用默认注释表", value=True, key="step8_use_default")
+    
+        df_notes = None
+
+        # 🌟 静默缓存：不加按钮、不加提示，同一个链接只会真正下载一次（直到应用重启）
+        @st.cache_data(show_spinner=False)
+        def _load_notes_cached(url):
+            import requests, io
+            resp = requests.get(url, timeout=15)
+            resp.raise_for_status()
+            return pd.read_excel(io.BytesIO(resp.content))
+
+        if use_default:
+            try:
+                with st.spinner("🚀 正在从云端加载默认注释表，请稍候..."):
+                    # 🌟 核心修改 2：替换为 raw.githubusercontent.com 的原生读取链接
+                    default_url = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/RD-%E5%9B%BE%E7%89%87%E5%86%85%E5%AE%B9%E5%88%86%E6%9E%90%E5%92%8C%E6%B3%A8%E9%87%8A%E6%A8%A1%E6%9D%BF-step8.xlsx"
+                    df_notes = _load_notes_cached(default_url)
+                st.success("✅ 内置默认注释表从云端加载成功！")
+            except Exception as e:
+                st.error(f"❌ 云端下载失败，报错原因: {e}")
+                # 贴心加上排错提示
+                st.info("💡 排错指南：\n1. 请确认你的 GitHub 仓库是 Public（公开）的，如果是 Private 则代码无法直接读取。\n2. 请确认文件已经成功 Push 到 GitHub，且没有拼写错误。")
+        else:
+            notes_file = st.file_uploader("上传 Excel 分析注释表", type=['xlsx', 'xls'], key="step8_notes")
+            if notes_file:
+                try:
+                    df_notes = pd.read_excel(notes_file)
+                    st.success("✅ 自定义注释表上传成功！")
+                except Exception as e:
+                    st.error(f"❌ 上传文件解析失败: {e}")
+
+# 💡 友情提示：记得在后续代码中，使用 df_notes 之前，先判断一下 if df_notes is not None:
+    
+        if df_notes is not None:
+            # 🌟 终极防线：在所有操作开始前，强制将这两列变为通用对象 (object)
+            # 这样 Pandas 才会允许我们把文本塞进原本全是空值的 float64 列里
+            if '分析内容-自定义' in df_notes.columns:
+                df_notes['分析内容-自定义'] = df_notes['分析内容-自定义'].astype('object')
+            if '分析内容-默认' in df_notes.columns:
+                df_notes['分析内容-默认'] = df_notes['分析内容-默认'].astype('object')
+
+            # 🌟 记录哪些 m_id 的"分析内容-自定义"原本为空、由系统自动生成
+            # （这些模块在每次渲染时都要按当前坐标轴刻度重新生成，
+            #  而不是使用这里写入的、可能已过期的快照值）
+            auto_generated_mids = set()
+
+            if '模块ID' in df_notes.columns and '分析内容-自定义' in df_notes.columns:
+                for idx, row in df_notes.iterrows():
+                    mid = str(row.get('模块ID', '')).strip()
+                    if not mid or mid == 'nan':
+                        continue
+                    
+                    # 🌟 修复读取方式
+                    raw_val = df_notes.loc[idx, '分析内容-自定义']
+                    
+                    # 修复：用 pd.isna 兼容 float NaN，不依赖字符串比较
+                    if pd.isna(raw_val) or str(raw_val).strip() in ('', 'nan', 'None'):
+                        auto_generated_mids.add(mid)
+                        # 🌟 性能优化：这里不再对每个模块都调用 generate_custom_analysis 预先算一遍。
+                        # 原因：只有 is_auto_generated=True 的模块，在真正被渲染时
+                        # render_report_module 会针对"当前显示的这一个模块"重新 live 生成一次
+                        # （见后面 render_report_module 里 is_auto_generated 分支），
+                        # 这里预算的结果反正会被覆盖掉，属于重复劳动，且会拖慢每次侧栏切换的速度。
+            
+
+            for col in df_notes.columns:
+                df_notes[col] = df_notes[col].astype(str).str.strip()
+            
+            required_cols = ['模块ID', '一级分类', '二级分类', '对应图表名称', '分析内容-默认', '分析内容-自定义', '注释内容']
+            for col in required_cols:
+                if col not in df_notes.columns:
+                    df_notes[col] = ''
+            
+            for col in ['一级分类', '二级分类', '对应图表名称', '模块ID']:
+                if col in df_notes.columns:
+                    df_notes[col] = df_notes[col].replace(['nan', 'NaN', 'NAN', 'None'], '')
+            
+            if '二级分类' in df_notes.columns:
+                df_notes['二级分类'] = df_notes['二级分类'].apply(
+                    lambda x: "全部" if str(x).strip() == "" else str(x).strip()
+                )
+            
+            for _, r in df_notes.iterrows():
+                m_id = str(r.get('模块ID', '')).strip()
+                if not m_id:
+                    continue
+                
+                analysis_default = str(r.get('分析内容-默认', '')).strip()
+                analysis_custom = str(r.get('分析内容-自定义', '')).strip()
+                
+                final_analysis = analysis_custom if analysis_custom else analysis_default
+                
+                notes_dict_8[m_id] = {
+                    'title': str(r.get('对应图表名称', '')).strip(),
+                    'analysis': final_analysis,           # 合并后的分析内容
+                    'analysis_default': analysis_default,  # 保留默认供后续使用
+                    'analysis_custom': analysis_custom,    # 保留自定义供后续使用
+                    'note': str(r.get('注释内容', '')).strip(),
+                    '一级分类': str(r.get('一级分类', '')).strip(),
+                    '二级分类': str(r.get('二级分类', '')).strip(),
+                    'remark': str(r.get('话术', '')).strip() if '话术' in df_notes.columns else '',
+                    'is_auto_generated': m_id in auto_generated_mids,  # 🌟 标记：自定义分析是否为系统自动生成
+                }
+                
+                if m_id not in ordered_modules:
+                    ordered_modules.append(m_id)
+            
+            first_levels = [x for x in df_notes['一级分类'].unique() if x and x != '']
+            
+            st.session_state['step8_notes_dict'] = notes_dict_8
+            st.session_state['step8_ordered_modules'] = ordered_modules
+            st.session_state['step8_df_notes'] = df_notes.copy()
+    
+    if df_notes is None and 'step8_df_notes' in st.session_state:
+        df_notes = st.session_state['step8_df_notes'].copy()
+        notes_dict_8 = st.session_state.get('step8_notes_dict', {})
+        ordered_modules = st.session_state.get('step8_ordered_modules', [])
+        first_levels = [x for x in df_notes['一级分类'].unique() if x and x != ''] if df_notes is not None else []
+        
+    # 3. 导航（一级/二级/具体图表 三层，全部放主区域，和渲染绑在同一个 fragment 里，见文件末尾）
+    # 1.6 全局配置
+    with st.expander("⚙️ 行业分析配置", expanded=False):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            all_types = sorted([str(x) for x in df_raw['公司类型'].dropna().unique()])
+            # 默认顺序：先按DEFAULT_TYPE_ORDER里有的，再追加数据里多出来的
+            default_order = [t for t in DEFAULT_TYPE_ORDER if t in all_types]
+            default_order += [t for t in all_types if t not in default_order]
+    
+            selected_types = st.multiselect(
+                "🏢 选择公司类型（可多选）",
+                default_order,
+                default=default_order
+            )
+            st.session_state['step8_selected_types'] = selected_types
+        with c2:
+            st.markdown("**📊 同类型公司展示顺序**")
+            st.caption("同一公司类型内的公司，按所选字段（最新年份）从高到低固定排列")
+            sort_field = st.selectbox(
+                "排序依据字段",
+                COMPANY_SORT_FIELD_OPTIONS,
+                index=0,
+                key="step8_company_sort_field_selector"
+            )
+            st.session_state['step8_company_sort_field'] = sort_field
+        with c3:
+            st.markdown("**📋 公司类型显示顺序**")
+            st.caption("调整下方选项顺序即可改变图表中的展示顺序")
+            type_order = st.multiselect(
+                "拖拽或重新选择顺序",
+                default_order,
+                default=default_order,
+                key="step8_type_order_selector"
+            )
+            # 补上没被选中的（保证所有类型都在顺序里）
+            full_order = type_order + [t for t in default_order if t not in type_order]
+            st.session_state['step8_type_order'] = full_order
+    # 🌟 按当前选定的排序字段，预先算好"公司 -> 排序值"映射，供下方图表统一使用
+    company_sort_map = get_company_sort_map(
+        df_raw, latest_year,
+        st.session_state.get('step8_company_sort_field', COMPANY_SORT_FIELD_OPTIONS[0])
+    )
+    
+    
+    # ========== 第④部分：渲染调度 + 具体图表切换 fragment（真正的执行入口） ==========
     # 第4层：辅助函数
     def show_chart(fig, p_mode):
         """统一图表输出"""
@@ -3329,64 +3276,121 @@ def show_step_8_content():
         if print_mode:
             st.markdown("</div>", unsafe_allow_html=True)
 
-    # 🌐 网页模式 / 🖨️ 打印模式 的最终执行器 (带封面与封底)
-    if not print_mode:
+    # 🌟 提速秘籍：把"一级/二级/具体图表 三层选择器 + 画图"整体绑进同一个 fragment。
+    # 全部控件都在主区域（不涉及侧栏），符合 Streamlit 对 fragment 的要求。
+    # 用户切换任意一层时，只有这个 fragment 会重新执行，前面的 Excel 下载/配置区都不会被重新跑一遍。
+    @st.fragment
+    def _step8_full_nav_fragment():
+        if not first_levels:
+            st.warning("⚠️ 请先上传包含层级信息的注释表")
+            return
+
+        with st.container(border=True):
+            nav_options = first_levels + ["🖨️ 一键显示全部 (打印/导出)"]
+            col1, col2, col3 = st.columns([1, 1, 1.3])
+
+            with col1:
+                main_nav = st.selectbox("📁 一级模块", nav_options, key="step8_main")
+
+            print_mode = (main_nav == "🖨️ 一键显示全部 (打印/导出)")
+            charts, lookup_df, chart_nav = [], None, None
+
+            if print_mode:
+                with col2:
+                    st.markdown("&nbsp;")
+                    st.caption("💡 将导出该报告下的全部图表")
+                with col3:
+                    st.markdown("&nbsp;")
+                    components.html(
+                        """<button onclick="window.parent.print()" style="width:100%; padding:8px; background:#00338D; color:white; border:none; border-radius:6px; cursor:pointer;">🖨️ 立即导出 PDF 报告</button>""",
+                        height=45
+                    )
+            else:
+                df_sub1 = df_notes[df_notes['一级分类'] == main_nav]
+                sec_levels = [x for x in df_sub1['二级分类'].unique() if x and x != '']
+
+                with col2:
+                    if sec_levels:
+                        sub_nav = st.selectbox("📂 二级模块", ["全部"] + sec_levels, key="step8_sub")
+                    else:
+                        sub_nav = "全部"
+                        st.markdown("&nbsp;")
+                        st.caption("（该分类下没有二级子模块）")
+
+                if sec_levels and sub_nav != "全部":
+                    lookup_df = df_sub1[df_sub1['二级分类'] == sub_nav]
+                else:
+                    lookup_df = df_sub1
+                charts = [x for x in lookup_df['对应图表名称'].unique() if x and x != '']
+
+                with col3:
+                    if charts:
+                        chart_nav = st.selectbox("📊 具体图表", charts, key="step8_chart_main")
+                    else:
+                        st.markdown("&nbsp;")
+                        st.caption("（该分类下暂无图表）")
+
         st.markdown(
             "<hr class='no-print' style='border:none;border-top:1px solid #EAEAEA;margin:10px 0;'>",
             unsafe_allow_html=True
         )
-    if print_mode:
-        if 'ordered_modules' not in locals() or not ordered_modules:
-            st.warning("⚠️ 报告顺序由【模块ID】的先后顺序决定，请先在上方传入有模块ID的注释表文件。")
-        else:
-            import datetime
-            today = datetime.date.today()
-            date_str = f"{today.year}年{today.month}月"
-            type_str = st.session_state.get('selected_type', '')
-            if type_str == "全部": 
-                type_str = ""
-            ly_str = st.session_state.get('latest_year', '2025')
-            
-            cover_url = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E6%A0%87%E9%A2%98%E9%A1%B5.png"
-            back_url  = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E5%B0%81%E5%BA%95%E9%A1%B5.png"
-            
-            st.markdown(f"""
-            <div style="position:relative; width:338.67mm;  height:175.5mm;    
-                page-break-after:always; overflow:hidden; margin:0; padding:0;
-                -webkit-print-color-adjust:exact; print-color-adjust:exact; forced-color-adjust:none;">
-                <img src="{cover_url}" style="width:100%; height:100%; object-fit:cover; display:block;"/>
-                <div style="position:absolute; top:0; left:0; width:100%; height:100%;
-                    display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
-                    padding:0 8%; box-sizing:border-box; margin-top:-30px; z-index:10;
-                    forced-color-adjust:none; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
-                    <div style="font-size:52px; font-weight:900; line-height:1.4; margin-bottom:16px;
-                        font-family:Microsoft YaHei,微软雅黑,sans-serif;
-                        color:white; -webkit-text-fill-color:white;
-                        text-shadow:2px 2px 4px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.3);
-                        forced-color-adjust:none; -webkit-print-color-adjust:exact;">
-                        {ly_str}年新会计准则行业表现和洞察<br>{type_str}保险公司<br>
-                    </div>
-                    <div style="font-size:22px; font-weight:500; margin:0;
-                        font-family:Microsoft YaHei,微软雅黑,sans-serif;
-                        color:white; -webkit-text-fill-color:white;
-                        text-shadow:1px 1px 3px rgba(0,0,0,0.5);
-                        forced-color-adjust:none; -webkit-print-color-adjust:exact;">{date_str}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
 
-            for i, mod in enumerate(ordered_modules):
-                render_report_module(mod, print_mode=True, is_first=(i == 0))
-                
-            st.markdown(f"""
-            <div style="position:relative; width:338.67mm;  height:175.5mm;
-                page-break-before:always; overflow:hidden; margin:0; padding:0;
-                -webkit-print-color-adjust:exact; print-color-adjust:exact; forced-color-adjust:none;">
-                <img src="{back_url}" style="width:100%; height:100%; object-fit:cover; display:block;"/>
-            </div>
-            """, unsafe_allow_html=True)
-    else:
-        if active_m_id:
-            render_report_module(active_m_id, print_mode=False, is_first=True)
+        if print_mode:
+            if 'ordered_modules' not in locals() or not ordered_modules:
+                st.warning("⚠️ 报告顺序由【模块ID】的先后顺序决定，请先在上方传入有模块ID的注释表文件。")
+            else:
+                import datetime
+                today = datetime.date.today()
+                date_str = f"{today.year}年{today.month}月"
+                type_str = st.session_state.get('selected_type', '')
+                if type_str == "全部":
+                    type_str = ""
+                ly_str = st.session_state.get('latest_year', '2025')
+
+                cover_url = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E6%A0%87%E9%A2%98%E9%A1%B5.png"
+                back_url  = "https://raw.githubusercontent.com/z-xylym/my-actuary-tool/main/%E5%B0%81%E5%BA%95%E9%A1%B5.png"
+
+                st.markdown(f"""
+                <div style="position:relative; width:338.67mm;  height:175.5mm;    
+                    page-break-after:always; overflow:hidden; margin:0; padding:0;
+                    -webkit-print-color-adjust:exact; print-color-adjust:exact; forced-color-adjust:none;">
+                    <img src="{cover_url}" style="width:100%; height:100%; object-fit:cover; display:block;"/>
+                    <div style="position:absolute; top:0; left:0; width:100%; height:100%;
+                        display:flex; flex-direction:column; justify-content:center; align-items:flex-start;
+                        padding:0 8%; box-sizing:border-box; margin-top:-30px; z-index:10;
+                        forced-color-adjust:none; -webkit-print-color-adjust:exact; print-color-adjust:exact;">
+                        <div style="font-size:52px; font-weight:900; line-height:1.4; margin-bottom:16px;
+                            font-family:Microsoft YaHei,微软雅黑,sans-serif;
+                            color:white; -webkit-text-fill-color:white;
+                            text-shadow:2px 2px 4px rgba(0,0,0,0.5), 0 0 20px rgba(0,0,0,0.3);
+                            forced-color-adjust:none; -webkit-print-color-adjust:exact;">
+                            {ly_str}年新会计准则行业表现和洞察<br>{type_str}保险公司<br>
+                        </div>
+                        <div style="font-size:22px; font-weight:500; margin:0;
+                            font-family:Microsoft YaHei,微软雅黑,sans-serif;
+                            color:white; -webkit-text-fill-color:white;
+                            text-shadow:1px 1px 3px rgba(0,0,0,0.5);
+                            forced-color-adjust:none; -webkit-print-color-adjust:exact;">{date_str}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                for i, mod in enumerate(ordered_modules):
+                    render_report_module(mod, print_mode=True, is_first=(i == 0))
+
+                st.markdown(f"""
+                <div style="position:relative; width:338.67mm;  height:175.5mm;
+                    page-break-before:always; overflow:hidden; margin:0; padding:0;
+                    -webkit-print-color-adjust:exact; print-color-adjust:exact; forced-color-adjust:none;">
+                    <img src="{back_url}" style="width:100%; height:100%; object-fit:cover; display:block;"/>
+                </div>
+                """, unsafe_allow_html=True)
         else:
-            st.info("💡 请从左侧导航栏选择要查看的行业分析模块")
+            if chart_nav and lookup_df is not None:
+                row = lookup_df[lookup_df['对应图表名称'] == chart_nav].iloc[0]
+                active_m_id = row['模块ID']
+                render_report_module(active_m_id, print_mode=False, is_first=True)
+            else:
+                st.info("💡 请选择要查看的行业分析模块")
+
+    _step8_full_nav_fragment()
